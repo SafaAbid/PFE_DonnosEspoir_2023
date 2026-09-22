@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  association
+  donateur
+  entreprise
+  administrateur
+}
+
+model Utilisateur {
+  id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  nom           String?         @db.VarChar(255)
+  email         String          @unique @db.VarChar(255)
+  image         String?         @db.VarChar(255)
+  motDePasse    String          @db.VarChar(255)
+  role          Role
+  association   Association?
+  donateur      Donateur?
+  admin         Administrateur?
+  notifications Notification[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now())
+}
+
+model Notification {
+  id            Int         @id @default(autoincrement()) @db.UnsignedInt
+  date          DateTime?   @default(now())
+  description   String?     @db.VarChar(1000)
+  etat          Boolean     @default(false)
+  idUtilisateur Int         @db.UnsignedInt
+  utilisateur   Utilisateur @relation(fields: [idUtilisateur], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+}
+
+model Administrateur {
+  // id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  userIdAdmin Int         @id @unique @db.UnsignedInt
+  user        Utilisateur @relation(fields: [userIdAdmin], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+}
+
+model Association {
+  //id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  userIdA        Int            @id @unique @db.UnsignedInt
+  user           Utilisateur    @relation(fields: [userIdA], references: [id])
+  identifiant    String         @unique
+  nomResponsable String?
+  numTelephone   String?        @unique
+  adresse        String?
+  //score          Int            @default(100)
+  ville          String?
+  isActive       Boolean        @default(false)
+  activites      Activite[]
+  besoins        Besoin[]
+  demandesObjet  DemandeObjet[]
+  benevoles      Benevole[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now())
+}
+
+model Donateur {
+  // id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  userIdD        Int         @id @unique @db.UnsignedInt
+  user           Utilisateur @relation(fields: [userIdD], references: [id])
+  //nbObjets       Int         @default(0)
+  nbObjetsDonnes Int         @default(0)
+  numTelephone   String?     @unique
+  adresse        String?
+  //score          Int         @default(100)
+  isActive       Boolean     @default(false)
+  ville          String?
+  objets         Objet[]
+  entreprise     Entreprise?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+}
+
+model Entreprise {
+  //id          Int             @id @default(autoincrement()) @db.UnsignedInt
+  donateurId      Int          @id @unique @db.UnsignedInt
+  donateur        Donateur     @relation(fields: [donateurId], references: [userIdD])
+  nbObjetsRepares Int          @default(0)
+  nomResponsable  String?
+  identifiant     String?      @unique
+  reparations     Reparation[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @default(now())
+}
+
+model Activite {
+  id             Int             @id @default(autoincrement()) @db.UnsignedInt
+  titre          String?
+  description    String?         @db.VarChar(1000)
+  image          ImageActivite[]
+  idAssociationA Int             @db.UnsignedInt
+  association    Association     @relation(fields: [idAssociationA], references: [userIdA])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now())
+}
+
+model ImageActivite {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  url        String?
+  activiteId Int      @db.UnsignedInt
+  activite   Activite @relation(fields: [activiteId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model Besoin {
+  id            Int         @id @default(autoincrement()) @db.UnsignedInt
+  associationId Int         @db.UnsignedInt
+  association   Association @relation(fields: [associationId], references: [userIdA])
+  description   String?     @db.VarChar(1000)
+  idCategorie   Int         @db.UnsignedInt
+  categorie     Categorie   @relation(fields: [idCategorie], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+}
+
+model Objet {
+  id              Int             @id @default(autoincrement()) @db.UnsignedInt
+  nom             String?
+  image           ImageObjet[]
+  description     String?         @db.VarChar(1000)
+  etatObjet       EtatObjet?
+  etatPublication EtatPublication @default(enCoursDeValidation)
+  disponible      Boolean         @default(true)
+  idDonateur      Int             @db.UnsignedInt
+  donateur        Donateur        @relation(fields: [idDonateur], references: [userIdD])
+  demandesObjet   DemandeObjet[]
+  idSousCategorie Int             @db.UnsignedInt
+  sousCategorie   SousCategorie   @relation(fields: [idSousCategorie], references: [id])
+  etatArchive     Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
+}
+
+enum EtatObjet {
+  tresBonEtat
+  bonEtat
+  moyenEtat
+}
+
+enum EtatPublication {
+  enCoursDeValidation
+  publie
+  refuse
+}
+
+model ImageObjet {
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  url       String?
+  objetId   Int      @db.UnsignedInt
+  objet     Objet    @relation(fields: [objetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model SousCategorie {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  nom         String?
+  image       String?
+  objets      Objet[]
+  idCategorie Int       @db.UnsignedInt
+  categorie   Categorie @relation(fields: [idCategorie], references: [id], onDelete: Cascade)
+  etatArchive Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+}
+
+model Categorie {
+  id             Int             @id @default(autoincrement()) @db.UnsignedInt
+  nom            String?
+  image          String?
+  sousCategories SousCategorie[]
+  besoins        Besoin[]
+  etatArchive    Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now())
+}
+
+model DemandeObjet {
+  id              Int             @id @default(autoincrement()) @db.UnsignedInt
+  dateDeDemande   DateTime        @default(now())
+  idObjet         Int             @db.UnsignedInt
+  objet           Objet           @relation(fields: [idObjet], references: [id], onDelete: Cascade)
+  associationId   Int             @db.UnsignedInt
+  association     Association     @relation(fields: [associationId], references: [userIdA], onDelete: Cascade)
+  // donation        Donation[]
+  donation        Donation?
+  etatAcceptation EtatAcceptation @default(enCours)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
+}
+
+enum EtatAcceptation {
+  enCours
+  acceptee
+  refusee
+  annulee
+}
+
+model Donation {
+  id                Int                @id @default(autoincrement()) @db.UnsignedInt
+  idDemandeObjet    Int                @unique @db.UnsignedInt
+  demandeObjet      DemandeObjet       @relation(fields: [idDemandeObjet], references: [id])
+  demandeReparation DemandeReparation?
+  idRendezVous      Int                @unique @db.UnsignedInt
+  rendezVous        RendezVous         @relation(fields: [idRendezVous], references: [id])
+  //etatArchive       Boolean            @default(false)
+  etatReparation    Boolean            @default(false)
+  etatValidation    Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now())
+}
+
+model DemandeReparation {
+  id              Int          @id @default(autoincrement()) @db.UnsignedInt
+  dateDemande     DateTime     @default(now())
+  etatAcceptation Boolean      @default(false)
+  description     String?      @db.VarChar(1000)
+  idDonation      Int          @unique @db.UnsignedInt
+  donation        Donation     @relation(fields: [idDonation], references: [id], onDelete: Cascade)
+  reparation      Reparation[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @default(now())
+}
+
+model Reparation {
+  id                  Int               @id @default(autoincrement()) @db.UnsignedInt
+  etat                EtatReparation?   @default(enCours)
+  demandeReparationId Int               @db.UnsignedInt
+  demandeReparation   DemandeReparation @relation(fields: [demandeReparationId], references: [id], onDelete: Cascade)
+  debutDeReparationId Int               @db.UnsignedInt
+  //rendez RendezVous @relation(fields: [idRendezVous],references: [id])
+  finDeReparationId   Int?              @db.UnsignedInt
+  debutDeReparation   RendezVous        @relation("reparationDebut", fields: [debutDeReparationId], references: [id], onDelete: Cascade)
+  finDeReparation     RendezVous?       @relation("reparationFin", fields: [finDeReparationId], references: [id], onDelete: Cascade)
+  idEntreprise        Int               @db.UnsignedInt
+  entreprise          Entreprise        @relation(fields: [idEntreprise], references: [donateurId])
+  //etatArchive         Boolean           @default(false)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now())
+}
+
+enum EtatReparation {
+  enCours
+  repare
+  nonValide
+}
+
+model RendezVous {
+  id              Int             @id @default(autoincrement()) @db.UnsignedInt
+  date            DateTime
+  donation        Donation?
+  idBenevole      Int?            @db.UnsignedInt
+  benevolee       Benevole?       @relation(fields: [idBenevole], references: [id], onDelete: Cascade)
+  reparationDebut Reparation[]    @relation("reparationDebut")
+  reparationFin   Reparation[]    @relation("reparationFin")
+  etatRealisation EtatRealisation @default(enCours)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now())
+}
+
+enum EtatRealisation {
+  enCours
+  realise
+  nonRealise
+}
+
+model Benevole {
+  id            Int          @id @default(autoincrement()) @db.UnsignedInt
+  nom           String?
+  prenom        String?
+  numTelephone  String?      
+  email         String?      
+  adresse       String?
+  etatArchive   Boolean      @default(false)
+  rendezVous    RendezVous[]
+  idAssociation Int          @db.UnsignedInt
+  association   Association  @relation(fields: [idAssociation], references: [userIdA], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now())
+}

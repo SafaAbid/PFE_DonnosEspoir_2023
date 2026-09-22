@@ -1,0 +1,22 @@
+.homeContainer{
+    display: flex;
+    width: 20%;
+}
+.demandes{
+    height: 20px;
+    margin-top: 80px;
+    margin-left: 180px;
+}
+.profile{
+    display: flex;
+}
+.profileRight{
+    flex: 9;
+}
+
+.demandeCover{
+    height: 320px;
+    margin-top: 80px;
+    margin-left: 40px;
+    margin-right: 40px;
+}

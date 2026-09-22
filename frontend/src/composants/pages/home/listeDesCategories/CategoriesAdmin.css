@@ -1,0 +1,46 @@
+/* Styles for CategoriesAdmin component */
+
+.header {
+    margin-bottom: 20px;
+}
+
+.subheader {
+    margin-top: 20px;
+}
+
+.category-item {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    height: 180px;
+}
+
+.subcategory-item {
+    border: 1px solid #eee;
+    border-left: 3px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    padding-left: 1px;
+    width: 10px;
+    height: 10px;
+}
+.edit-icon,
+.delete-icon {
+  /*  margin: 1px; */
+    margin-left: 450px;
+   /* Ajoute un espace entre les icônes */
+}
+
+/* Alignement vertical des icônes */
+.icon-container {
+    display: flex;
+    align-items: center;
+}
+.modal-with-scroll .modal-body {
+    max-height: 400px; /* Définissez la hauteur maximale de la zone de contenu */
+    overflow-y: auto; /* Activez le défilement vertical si nécessaire */
+  }
+  
+  .scrollable-content {
+    overflow-y: auto; /* Activez le défilement vertical pour le contenu supplémentaire */
+  }
